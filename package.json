@@ -20,10 +20,10 @@
     "bindings": "^1.5.0",
     "bit-twiddle": "^1.0.2",
     "glsl-tokenizer": "^2.0.2",
-    "nan": "nodejs/nan",
-    "node-abi": "^2.30.1",
-    "node-gyp": "^9.1.2",
-    "prebuild-install": "^5.3.6"
+    "nan": "^2.17.0",
+    "node-abi": "^3.26.0",
+    "node-gyp": "^9.2.0",
+    "prebuild-install": "^7.1.1"
   },
   "devDependencies": {
     "angle-normals": "^1.0.0",

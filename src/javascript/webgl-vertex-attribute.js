@@ -6,10 +6,10 @@ class WebGLVertexArrayObjectAttribute {
     this._ctx = ctx
     this._idx = idx
     this._clear()
+    this._isPointer = false
   }
 
   _clear () {
-    this._isPointer = false
     this._pointerBuffer = null
     this._pointerOffset = 0
     this._pointerSize = 0

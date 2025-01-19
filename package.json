@@ -1,14 +1,14 @@
 {
   "name": "gl",
-  "version": "4.9.3",
+  "version": "8.1.6",
   "description": "Creates a WebGL context without a window",
   "main": "index.js",
+  "browser": "src/javascript/browser-index.js",
   "directories": {
     "test": "test"
   },
-  "browser": "browser_index.js",
   "engines": {
-    "node": ">=12.0.0"
+    "node": ">=18.0.0"
   },
   "scripts": {
     "test": "standard | snazzy && tape test/*.js | faucet",
@@ -19,21 +19,21 @@
   "dependencies": {
     "bindings": "^1.5.0",
     "bit-twiddle": "^1.0.2",
-    "glsl-tokenizer": "^2.0.2",
-    "nan": "^2.17.0",
-    "node-abi": "^3.26.0",
-    "node-gyp": "^9.2.0",
-    "prebuild-install": "^7.1.1"
+    "glsl-tokenizer": "^2.1.5",
+    "nan": "^2.22.0",
+    "node-abi": "^3.71.0",
+    "node-gyp": "^10.2.0",
+    "prebuild-install": "^7.1.2"
   },
   "devDependencies": {
     "angle-normals": "^1.0.0",
     "bunny": "^1.0.1",
-    "faucet": "0.0.1",
+    "faucet": "^0.0.4",
     "gl-conformance": "^2.0.9",
-    "prebuild": "^10.0.1",
-    "snazzy": "^8.0.0",
-    "standard": "^14.3.4",
-    "tape": "^5.3.1"
+    "prebuild": "^13.0.1",
+    "snazzy": "^9.0.0",
+    "standard": "^17.1.2",
+    "tape": "^5.9.0"
   },
   "repository": {
     "type": "git",
@@ -47,6 +47,7 @@
     "server",
     "gpgpu"
   ],
+  "types": "index.d.ts",
   "author": "Mikola Lysenko",
   "license": "BSD-2-Clause",
   "gypfile": true

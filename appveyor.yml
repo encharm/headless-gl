@@ -1,19 +1,17 @@
+image:
+  - Visual Studio 2022
+
 platform:
   - x64
 
 environment:
-  GITHUB_TOKEN:
-    secure: 8dsj2oODP6p82OsCyVjldh0v/KktBJYWWPFWmrg+bh7y0CNpQPwtww+IjX14LMrx
   matrix:
-  # - nodejs_version: "12"
-  # - nodejs_version: "14"
-  - nodejs_version: "16"
+  - nodejs_version: "22"
 
 install:
+  - ps: Install-Module VSSetup -Scope CurrentUser
   - cmd: git submodule update --init
   - ps: Update-NodeJsInstallation (Get-NodeJsLatestBuild $env:nodejs_version) $env:PLATFORM
-  - npm config set msvs_version 2015 --global
-  - npm config set target_arch %PLATFORM% --global
   - npm install -g node-gyp
 
 build_script:
@@ -24,4 +22,7 @@ test_script:
   - npm test
 
 deploy_script:
-  - ps: if ($env:APPVEYOR_REPO_TAG -eq "true") {./node_modules/.bin/prebuild -t 10.0.0 -t 12.0.0 -t 14.0.0 -t 16.0.0 --strip -u $env:GITHUB_TOKEN --include-regex "\.(node|dll)$"}
+  - ps: if ($env:APPVEYOR_REPO_TAG -eq "true" -or $env:FORCE_PREBUILD -ne $null) {./node_modules/.bin/prebuild -t 18.0.0 -t 20.0.0 -t 22.0.0 --strip -u $env:GITHUB_TOKEN --include-regex "\.(node|dll)$"}
+
+cache:
+  - '%APPDATA%\npm-cache'               # npm cache

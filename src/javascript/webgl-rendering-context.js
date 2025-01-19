@@ -12,6 +12,7 @@ const { getSTACKGLResizeDrawingBuffer } = require('./extensions/stackgl-resize-d
 const { getWebGLDrawBuffers } = require('./extensions/webgl-draw-buffers')
 const { getEXTBlendMinMax } = require('./extensions/ext-blend-minmax')
 const { getEXTTextureFilterAnisotropic } = require('./extensions/ext-texture-filter-anisotropic')
+const { getEXTShaderTextureLod } = require('./extensions/ext-shader-texture-lod')
 const { getOESVertexArrayObject } = require('./extensions/oes-vertex-array-object')
 const {
   bindPublics,
@@ -65,7 +66,8 @@ const availableExtensions = {
   stackgl_resize_drawingbuffer: getSTACKGLResizeDrawingBuffer,
   webgl_draw_buffers: getWebGLDrawBuffers,
   ext_blend_minmax: getEXTBlendMinMax,
-  ext_texture_filter_anisotropic: getEXTTextureFilterAnisotropic
+  ext_texture_filter_anisotropic: getEXTTextureFilterAnisotropic,
+  ext_shader_texture_lod: getEXTShaderTextureLod
 }
 
 const privateMethods = [
@@ -849,7 +851,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
       gl.STREAM_DRAW)
     super.enableVertexAttribArray(0)
     super.vertexAttribPointer(0, 4, gl.FLOAT, false, 0, 0)
-    super._vertexAttribDivisor(0, 1)
+    super._vertexAttribDivisorANGLE(0, 1)
   }
 
   _endAttrib0Hack () {
@@ -866,7 +868,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
       attrib._pointerNormal,
       attrib._inputStride,
       attrib._pointerOffset)
-    super._vertexAttribDivisor(0, attrib._divisor)
+    super._vertexAttribDivisorANGLE(0, attrib._divisor)
     super.disableVertexAttribArray(0)
     if (this._vertexGlobalState._arrayBufferBinding) {
       super.bindBuffer(gl.ARRAY_BUFFER, this._vertexGlobalState._arrayBufferBinding._)
@@ -1179,10 +1181,14 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     if (str in this._extensions) {
       return this._extensions[str]
     }
-    const ext = availableExtensions[str] ? availableExtensions[str](this) : null
-    if (ext) {
-      this._extensions[str] = ext
+
+    if (!(str in availableExtensions)) {
+      return null
     }
+
+    super.getExtension(str)
+    const ext = availableExtensions[str](this)
+    this._extensions[str] = ext
     return ext
   }
 
@@ -1211,20 +1217,24 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
       exts.push('OES_texture_float_linear')
     }
 
-    if (supportedExts.indexOf('EXT_draw_buffers') >= 0) {
+    if (supportedExts.indexOf('GL_EXT_draw_buffers') >= 0) {
       exts.push('WEBGL_draw_buffers')
     }
 
-    if (supportedExts.indexOf('EXT_blend_minmax') >= 0) {
+    if (supportedExts.indexOf('GL_EXT_blend_minmax') >= 0) {
       exts.push('EXT_blend_minmax')
     }
 
-    if (supportedExts.indexOf('EXT_texture_filter_anisotropic') >= 0) {
+    if (supportedExts.indexOf('GL_EXT_texture_filter_anisotropic') >= 0) {
       exts.push('EXT_texture_filter_anisotropic')
     }
 
     if (supportedExts.indexOf('GL_OES_vertex_array_object') >= 0) {
       exts.push('OES_vertex_array_object')
+    }
+
+    if (supportedExts.indexOf('GL_EXT_shader_texture_lod') >= 0) {
+      exts.push('EXT_shader_texture_lod')
     }
 
     return exts
@@ -1304,7 +1314,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
     if (typeof data === 'object') {
       let u8Data = null
-      if (isTypedArray(data)) {
+      if (isTypedArray(data) || data instanceof DataView) {
         u8Data = unpackTypedArray(data)
       } else if (data instanceof ArrayBuffer) {
         u8Data = new Uint8Array(data)
@@ -1386,7 +1396,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     }
 
     let u8Data = null
-    if (isTypedArray(data)) {
+    if (isTypedArray(data) || data instanceof DataView) {
       u8Data = unpackTypedArray(data)
     } else if (data instanceof ArrayBuffer) {
       u8Data = new Uint8Array(data)
@@ -1601,7 +1611,9 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
       object._checkDelete()
       return
     }
-    this.setError(gl.INVALID_OPERATION)
+    if (object !== null) {
+      this.setError(gl.INVALID_OPERATION)
+    }
   }
 
   deleteBuffer (buffer) {
@@ -1857,7 +1869,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
         return super.drawArrays(mode, first, reducedCount)
       } else {
         this._beginAttrib0Hack()
-        super._drawArraysInstanced(mode, first, reducedCount, 1)
+        super._drawArraysInstancedANGLE(mode, first, reducedCount, 1)
         this._endAttrib0Hack()
       }
     }
@@ -1968,11 +1980,17 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
     if (this._checkVertexAttribState(maxIndex)) {
       if (reducedCount > 0) {
-        if (this._vertexObjectState._attribs[0]._isPointer) {
+        if (
+          this._vertexObjectState._attribs[0]._isPointer || (
+            this._extensions.webgl_draw_buffers &&
+            this._extensions.webgl_draw_buffers._buffersState &&
+            this._extensions.webgl_draw_buffers._buffersState.length > 0
+          )
+        ) {
           return super.drawElements(mode, reducedCount, type, ioffset)
         } else {
           this._beginAttrib0Hack()
-          super._drawElementsInstanced(mode, reducedCount, type, ioffset, 1)
+          super._drawElementsInstancedANGLE(mode, reducedCount, type, ioffset, 1)
           this._endAttrib0Hack()
         }
       }
@@ -2881,21 +2899,22 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     width |= 0
     height |= 0
 
-    if (this._extensions.oes_texture_float && type === gl.FLOAT && format === gl.RGBA) {
-    } else if (format === gl.RGB ||
-      format === gl.ALPHA ||
-      type !== gl.UNSIGNED_BYTE) {
-      this.setError(gl.INVALID_OPERATION)
-      return
-    } else if (format !== gl.RGBA) {
-      this.setError(gl.INVALID_ENUM)
-      return
-    } else if (
-      width < 0 ||
-      height < 0 ||
-      !(pixels instanceof Uint8Array)) {
-      this.setError(gl.INVALID_VALUE)
-      return
+    if (!(this._extensions.oes_texture_float && type === gl.FLOAT && format === gl.RGBA)) {
+      if (format === gl.RGB ||
+        format === gl.ALPHA ||
+        type !== gl.UNSIGNED_BYTE) {
+        this.setError(gl.INVALID_OPERATION)
+        return
+      } else if (format !== gl.RGBA) {
+        this.setError(gl.INVALID_ENUM)
+        return
+      } else if (
+        width < 0 ||
+        height < 0 ||
+        !(pixels instanceof Uint8Array)) {
+        this.setError(gl.INVALID_VALUE)
+        return
+      }
     }
 
     if (!this._framebufferOk()) {
@@ -3858,6 +3877,14 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     data[0] = value[0]
     return super.vertexAttrib4f(index | 0, +value[0], +value[1], +value[2], +value[3])
   }
+}
+
+// Make the gl consts available as static properties
+for (const [key, value] of Object.entries(gl)) {
+  if (typeof value !== 'number') {
+    continue
+  }
+  Object.assign(WebGLRenderingContext, { [key]: value })
 }
 
 module.exports = { WebGLRenderingContext, wrapContext }

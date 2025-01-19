@@ -12,6 +12,7 @@ const { getSTACKGLResizeDrawingBuffer } = require('./extensions/stackgl-resize-d
 const { getWebGLDrawBuffers } = require('./extensions/webgl-draw-buffers')
 const { getEXTBlendMinMax } = require('./extensions/ext-blend-minmax')
 const { getEXTTextureFilterAnisotropic } = require('./extensions/ext-texture-filter-anisotropic')
+const { getEXTShaderTextureLod } = require('./extensions/ext-shader-texture-lod')
 const { getOESVertexArrayObject } = require('./extensions/oes-vertex-array-object')
 const {
   bindPublics,
@@ -65,7 +66,8 @@ const availableExtensions = {
   stackgl_resize_drawingbuffer: getSTACKGLResizeDrawingBuffer,
   webgl_draw_buffers: getWebGLDrawBuffers,
   ext_blend_minmax: getEXTBlendMinMax,
-  ext_texture_filter_anisotropic: getEXTTextureFilterAnisotropic
+  ext_texture_filter_anisotropic: getEXTTextureFilterAnisotropic,
+  ext_shader_texture_lod: getEXTShaderTextureLod
 }
 
 const privateMethods = [
@@ -1227,6 +1229,10 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
       exts.push('OES_vertex_array_object')
     }
 
+    if (supportedExts.indexOf('GL_EXT_shader_texture_lod') >= 0) {
+      exts.push('EXT_shader_texture_lod')
+    }
+
     return exts
   }
 
@@ -1304,7 +1310,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
     if (typeof data === 'object') {
       let u8Data = null
-      if (isTypedArray(data)) {
+      if (isTypedArray(data) || data instanceof DataView) {
         u8Data = unpackTypedArray(data)
       } else if (data instanceof ArrayBuffer) {
         u8Data = new Uint8Array(data)
@@ -1386,7 +1392,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     }
 
     let u8Data = null
-    if (isTypedArray(data)) {
+    if (isTypedArray(data) || data instanceof DataView) {
       u8Data = unpackTypedArray(data)
     } else if (data instanceof ArrayBuffer) {
       u8Data = new Uint8Array(data)
@@ -1968,7 +1974,13 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
     if (this._checkVertexAttribState(maxIndex)) {
       if (reducedCount > 0) {
-        if (this._vertexObjectState._attribs[0]._isPointer) {
+        if (
+          this._vertexObjectState._attribs[0]._isPointer || (
+            this._extensions.webgl_draw_buffers &&
+            this._extensions.webgl_draw_buffers._buffersState &&
+            this._extensions.webgl_draw_buffers._buffersState.length > 0
+          )
+        ) {
           return super.drawElements(mode, reducedCount, type, ioffset)
         } else {
           this._beginAttrib0Hack()
@@ -2881,21 +2893,22 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     width |= 0
     height |= 0
 
-    if (this._extensions.oes_texture_float && type === gl.FLOAT && format === gl.RGBA) {
-    } else if (format === gl.RGB ||
-      format === gl.ALPHA ||
-      type !== gl.UNSIGNED_BYTE) {
-      this.setError(gl.INVALID_OPERATION)
-      return
-    } else if (format !== gl.RGBA) {
-      this.setError(gl.INVALID_ENUM)
-      return
-    } else if (
-      width < 0 ||
-      height < 0 ||
-      !(pixels instanceof Uint8Array)) {
-      this.setError(gl.INVALID_VALUE)
-      return
+    if (!(this._extensions.oes_texture_float && type === gl.FLOAT && format === gl.RGBA)) {
+      if (format === gl.RGB ||
+        format === gl.ALPHA ||
+        type !== gl.UNSIGNED_BYTE) {
+        this.setError(gl.INVALID_OPERATION)
+        return
+      } else if (format !== gl.RGBA) {
+        this.setError(gl.INVALID_ENUM)
+        return
+      } else if (
+        width < 0 ||
+        height < 0 ||
+        !(pixels instanceof Uint8Array)) {
+        this.setError(gl.INVALID_VALUE)
+        return
+      }
     }
 
     if (!this._framebufferOk()) {
@@ -3858,6 +3871,14 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     data[0] = value[0]
     return super.vertexAttrib4f(index | 0, +value[0], +value[1], +value[2], +value[3])
   }
+}
+
+// Make the gl consts available as static properties
+for (const [key, value] of Object.entries(gl)) {
+  if (typeof value !== 'number') {
+    continue
+  }
+  Object.assign(WebGLRenderingContext, { [key]: value })
 }
 
 module.exports = { WebGLRenderingContext, wrapContext }

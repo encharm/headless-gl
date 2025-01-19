@@ -3,42 +3,36 @@ git:
   submodules: true
 env:
   global:
-    - secure: H9lQEk76gGIi0TM9dGSZYmezr+8x4a4HQuwyJ1Z7wnWuW6diWtftfaim85AvjRpNnhpfz5ia6hmzLruOXbjDxCYp2RN9nhebBlGp9iYQsoyzZlTphWVNj0cGC9AIkxEtobswU3/A79FgnMhZxo5vSu4eotTgxo7nyiUaTuKB2nI=
+    - secure: "YEhcMuHvycqdfQZhCJhDz9aw56tmvvfr+k/1hiGsIQx7zyZbLR03wUT4EUQAKdG57lOGHZwUdb4koW+OAG3ZVD7rWlw2UOw4G7BiWbQeVXO8isQiFd3CtIRvqbeEzDsu/AQGa8MSb9zoEbFRvV7MDd9TuKbiwVDoPyKGI6qZioA="
 matrix:
   include:
-  # - os: linux
-  #   sudo: required
-  #   dist: bionic
-  #   compiler: g++
-  #   env:
-  #     - NODE_VERSION=12
-  # - os: linux
-  #   sudo: required
-  #   dist: bionic
-  #   compiler: g++
-  #   env:
-  #     - NODE_VERSION=14
   - os: linux
     sudo: required
-    dist: bionic
+    dist: focal
     compiler: g++
     env:
-      - NODE_VERSION=16
+      - NODE_VERSION=20
+  - os: linux
+    sudo: required
+    dist: focal
+    compiler: g++
+    env:
+      - NODE_VERSION=22
   # - os: osx
-  #   osx_image: xcode12.5
-  #   compiler: clang
-  #   env:
-  #     - NODE_VERSION=12
-  # - os: osx
-  #   osx_image: xcode12.5
+  #   osx_image: xcode13.4
   #   compiler: clang
   #   env:
   #     - NODE_VERSION=14
   # - os: osx
-  #   osx_image: xcode12.5
+  #   osx_image: xcode13.4
   #   compiler: clang
   #   env:
   #     - NODE_VERSION=16
+  # - os: osx
+  #   osx_image: xcode13.4
+  #   compiler: clang
+  #   env:
+  #     - NODE_VERSION=18
 addons:
   apt:
     sources:

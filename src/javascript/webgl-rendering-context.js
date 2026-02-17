@@ -12,6 +12,10 @@ const { getEXTBlendMinMax } = require('./extensions/ext-blend-minmax')
 const { getEXTTextureFilterAnisotropic } = require('./extensions/ext-texture-filter-anisotropic')
 const { getEXTShaderTextureLod } = require('./extensions/ext-shader-texture-lod')
 const { getOESVertexArrayObject } = require('./extensions/oes-vertex-array-object')
+const { getEXTFloatBlend } = require('./extensions/ext-float-blend')
+const { getOESTextureHalfFloat } = require('./extensions/oes-texture-half-float')
+const { getOESTextureHalfFloatLinear } = require('./extensions/oes-texture-half-float-linear')
+const { getEXTColorBufferHalfFloat } = require('./extensions/ext-color-buffer-half-float')
 const {
   bindPublics,
   checkObject,
@@ -65,7 +69,11 @@ const availableExtensions = {
   ext_blend_minmax: getEXTBlendMinMax,
   ext_texture_filter_anisotropic: getEXTTextureFilterAnisotropic,
   ext_shader_texture_lod: getEXTShaderTextureLod,
-  ext_color_buffer_float: getEXTColorBufferFloat
+  ext_color_buffer_float: getEXTColorBufferFloat,
+  ext_float_blend: getEXTFloatBlend,
+  oes_texture_half_float: getOESTextureHalfFloat,
+  oes_texture_half_float_linear: getOESTextureHalfFloatLinear,
+  ext_color_buffer_half_float: getEXTColorBufferHalfFloat
 }
 
 const privateMethods = [
@@ -1623,13 +1631,13 @@ class WebGLRenderingContextHelper extends NativeWebGLRenderingContext {
       case this.TEXTURE_BINDING_CUBE_MAP:
         return this._getActiveTextureUnit()._bindCube
       case this.VERSION:
-        return 'WebGL 1.0 stack-gl ' + HEADLESS_VERSION
+        return (this._isWebGL2() ? 'WebGL 2.0 stack-gl ' : 'WebGL 1.0 stack-gl ') + HEADLESS_VERSION
       case this.VENDOR:
         return 'stack-gl'
       case this.RENDERER:
         return 'ANGLE'
       case this.SHADING_LANGUAGE_VERSION:
-        return 'WebGL GLSL ES 1.0 stack-gl'
+        return this._isWebGL2() ? 'WebGL GLSL ES 3.00 stack-gl' : 'WebGL GLSL ES 1.0 stack-gl'
 
       default:
         if (this._extensions) {

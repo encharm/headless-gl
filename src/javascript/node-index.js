@@ -29,7 +29,8 @@ function createContext (width, height, options) {
     flag(options, 'preserveDrawingBuffer', false),
     flag(options, 'preferLowPowerToHighPerformance', false),
     flag(options, 'failIfMajorPerformanceCaveat', false),
-    flag(options, 'createWebGL2Context', false))
+    flag(options, 'createWebGL2Context', false),
+    flag(options, 'useSwiftShader', false))
 
   // Can only use premultipliedAlpha if alpha is set
   contextAttributes.premultipliedAlpha =
@@ -49,7 +50,8 @@ function createContext (width, height, options) {
       contextAttributes.preserveDrawingBuffer,
       contextAttributes.preferLowPowerToHighPerformance,
       contextAttributes.failIfMajorPerformanceCaveat,
-      contextAttributes.createWebGL2Context)
+      contextAttributes.createWebGL2Context,
+      contextAttributes.useSwiftShader)
   } catch (e) {}
   if (!ctx) {
     return null

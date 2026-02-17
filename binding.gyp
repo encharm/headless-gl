@@ -48,6 +48,8 @@
                 'files': [
                   '<(module_root_dir)/deps/darwin/dylib/libEGL.dylib',
                   '<(module_root_dir)/deps/darwin/dylib/libGLESv2.dylib',
+                  '<(module_root_dir)/deps/darwin/dylib/libvk_swiftshader.dylib',
+                  '<(module_root_dir)/deps/darwin/dylib/vk_swiftshader_icd.json',
                 ]
               }
            ]

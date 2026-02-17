@@ -8,7 +8,8 @@ class WebGLContextAttributes {
     preserveDrawingBuffer,
     preferLowPowerToHighPerformance,
     failIfMajorPerformanceCaveat,
-    createWebGL2Context) {
+    createWebGL2Context,
+    useSwiftShader) {
     this.alpha = alpha
     this.depth = depth
     this.stencil = stencil
@@ -18,6 +19,7 @@ class WebGLContextAttributes {
     this.preferLowPowerToHighPerformance = preferLowPowerToHighPerformance
     this.failIfMajorPerformanceCaveat = failIfMajorPerformanceCaveat
     this.createWebGL2Context = createWebGL2Context
+    this.useSwiftShader = useSwiftShader
   }
 }
 

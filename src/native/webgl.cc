@@ -115,6 +115,8 @@ GLenum OverrideDrawBufferEnum(GLenum buffer) {
     return GL_DEPTH_ATTACHMENT;
   case GL_STENCIL:
     return GL_STENCIL_ATTACHMENT;
+  default:
+    return buffer;
   }
 }
 
@@ -186,7 +188,8 @@ WebGLRenderingContext::WebGLRenderingContext(int width, int height, bool alpha, 
                                              bool preserveDrawingBuffer,
                                              bool preferLowPowerToHighPerformance,
                                              bool failIfMajorPerformanceCaveat,
-                                             bool createWebGL2Context)
+                                             bool createWebGL2Context,
+                                             bool useSwiftShader)
     : state(GLCONTEXT_STATE_INIT), unpack_flip_y(false), unpack_premultiply_alpha(false),
       unpack_colorspace_conversion(0x9244), unpack_alignment(4),
       webGLToANGLEExtensions(&CaseInsensitiveCompare), next(NULL), prev(NULL) {
@@ -204,9 +207,35 @@ WebGLRenderingContext::WebGLRenderingContext(int width, int height, bool alpha, 
 
   // Get display
   if (!HAS_DISPLAY) {
-    DISPLAY = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    const char *envSwiftShader = getenv("USE_SWIFTSHADER");
+    if (useSwiftShader || (envSwiftShader && envSwiftShader[0] == '1')) {
+      // Auto-set VK_ICD_FILENAMES if not already set
+      if (!getenv("VK_ICD_FILENAMES")) {
+        std::string icdPath = GetModuleDirectory() + "/vk_swiftshader_icd.json";
+        setenv("VK_ICD_FILENAMES", icdPath.c_str(), 0);
+      }
+      EGLint displayAttribs[] = {
+        EGL_PLATFORM_ANGLE_TYPE_ANGLE, EGL_PLATFORM_ANGLE_TYPE_VULKAN_ANGLE,
+        EGL_PLATFORM_ANGLE_DEVICE_TYPE_ANGLE, EGL_PLATFORM_ANGLE_DEVICE_TYPE_SWIFTSHADER_ANGLE,
+        EGL_NONE
+      };
+      DISPLAY = eglGetPlatformDisplayEXT(EGL_PLATFORM_ANGLE_ANGLE, (void *)EGL_DEFAULT_DISPLAY, displayAttribs);
+    }
+#if defined(__APPLE__)
+    else {
+      EGLint displayAttribs[] = {
+        EGL_PLATFORM_ANGLE_TYPE_ANGLE, EGL_PLATFORM_ANGLE_TYPE_METAL_ANGLE,
+        EGL_NONE
+      };
+      DISPLAY = eglGetPlatformDisplayEXT(EGL_PLATFORM_ANGLE_ANGLE, (void *)EGL_DEFAULT_DISPLAY, displayAttribs);
+    }
+#else
+    else {
+      DISPLAY = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    }
+#endif
     if (DISPLAY == EGL_NO_DISPLAY) {
-      errorMessage = "Error retrieving EGL default display.";
+      errorMessage = "Error retrieving EGL display.";
       state = GLCONTEXT_STATE_ERROR;
       return;
     }
@@ -223,7 +252,7 @@ WebGLRenderingContext::WebGLRenderingContext(int width, int height, bool alpha, 
   }
 
   // Set up configuration
-  EGLint renderableTypeBit = createWebGL2Context ? EGL_OPENGL_ES2_BIT : EGL_OPENGL_ES3_BIT;
+  EGLint renderableTypeBit = createWebGL2Context ? EGL_OPENGL_ES3_BIT : EGL_OPENGL_ES2_BIT;
   EGLint attrib_list[] = {EGL_SURFACE_TYPE,
                           EGL_PBUFFER_BIT,
                           EGL_RED_SIZE,
@@ -305,6 +334,10 @@ WebGLRenderingContext::WebGLRenderingContext(int width, int height, bool alpha, 
 
   // Request necessary WebGL extensions.
   glRequestExtensionANGLE("GL_EXT_texture_storage");
+  glRequestExtensionANGLE("GL_EXT_float_blend");
+  glRequestExtensionANGLE("GL_OES_texture_half_float");
+  glRequestExtensionANGLE("GL_OES_texture_npot");
+  glRequestExtensionANGLE("GL_EXT_color_buffer_half_float");
 
   // Select best preferred depth
   preferredDepth = GL_DEPTH_COMPONENT16;
@@ -320,6 +353,10 @@ WebGLRenderingContext::WebGLRenderingContext(int width, int height, bool alpha, 
   webGLToANGLEExtensions.insert(
       {"EXT_texture_filter_anisotropic", {"GL_EXT_texture_filter_anisotropic"}});
   webGLToANGLEExtensions.insert({"OES_texture_float_linear", {"GL_OES_texture_float_linear"}});
+  webGLToANGLEExtensions.insert({"EXT_float_blend", {"GL_EXT_float_blend"}});
+  webGLToANGLEExtensions.insert({"OES_texture_half_float", {"GL_OES_texture_half_float"}});
+  webGLToANGLEExtensions.insert({"OES_texture_half_float_linear", {"GL_OES_texture_half_float_linear"}});
+  webGLToANGLEExtensions.insert({"EXT_color_buffer_half_float", {"GL_EXT_color_buffer_half_float"}});
   if (createWebGL2Context) {
     webGLToANGLEExtensions.insert({"EXT_color_buffer_float", {"GL_EXT_color_buffer_float"}});
   } else {
@@ -444,6 +481,7 @@ GL_METHOD(New) {
   Nan::HandleScope();
 
   bool createWebGL2Context = Nan::To<bool>(info[10]).ToChecked();
+  bool useSwiftShader = info.Length() > 11 ? Nan::To<bool>(info[11]).ToChecked() : false;
 
   WebGLRenderingContext *instance =
       new WebGLRenderingContext(Nan::To<int32_t>(info[0]).ToChecked(), // Width
@@ -456,7 +494,8 @@ GL_METHOD(New) {
                                 Nan::To<bool>(info[7]).ToChecked(),    // preserve drawing buffer
                                 Nan::To<bool>(info[8]).ToChecked(),    // low power
                                 Nan::To<bool>(info[9]).ToChecked(),    // fail if crap
-                                createWebGL2Context);
+                                createWebGL2Context,
+                                useSwiftShader);
 
   if (instance->state != GLCONTEXT_STATE_OK) {
     if (!instance->errorMessage.empty()) {

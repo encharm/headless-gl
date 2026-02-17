@@ -214,7 +214,11 @@ WebGLRenderingContext::WebGLRenderingContext(int width, int height, bool alpha, 
       // Auto-set VK_ICD_FILENAMES if not already set
       if (!getenv("VK_ICD_FILENAMES")) {
         std::string icdPath = GetModuleDirectory() + "/vk_swiftshader_icd.json";
+#ifdef _WIN32
+        _putenv_s("VK_ICD_FILENAMES", icdPath.c_str());
+#else
         setenv("VK_ICD_FILENAMES", icdPath.c_str(), 0);
+#endif
       }
       EGLint displayAttribs[] = {
         EGL_PLATFORM_ANGLE_TYPE_ANGLE, EGL_PLATFORM_ANGLE_TYPE_VULKAN_ANGLE,

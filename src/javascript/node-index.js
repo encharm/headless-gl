@@ -24,6 +24,7 @@ function createContext (width, height, options) {
   const failIfMajorPerf = flag(options, 'failIfMajorPerformanceCaveat', false)
   const createWebGL2 = flag(options, 'createWebGL2Context', false)
   const useSwiftShader = flag(options, 'useSwiftShader', false)
+  const useVulkan = flag(options, 'useVulkan', false)
 
   let ctx
   try {
@@ -32,7 +33,7 @@ function createContext (width, height, options) {
       alpha, depth, stencil, antialias,
       premultipliedAlpha, preserveDrawingBuffer,
       preferLowPower, failIfMajorPerf,
-      createWebGL2, useSwiftShader)
+      createWebGL2, useSwiftShader, useVulkan)
   } catch (e) {
     return null
   }

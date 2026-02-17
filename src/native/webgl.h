@@ -98,7 +98,8 @@ struct WebGLRenderingContext : public node::ObjectWrap {
   WebGLRenderingContext(int width, int height, bool alpha, bool depth, bool stencil, bool antialias,
                         bool premultipliedAlpha, bool preserveDrawingBuffer,
                         bool preferLowPowerToHighPerformance, bool failIfMajorPerformanceCaveat,
-                        bool createWebGL2Context, bool useSwiftShader = false);
+                        bool createWebGL2Context, bool useSwiftShader = false,
+                        bool useVulkan = false);
   virtual ~WebGLRenderingContext();
 
   // Context validation

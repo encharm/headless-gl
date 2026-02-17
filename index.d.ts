@@ -16,19 +16,19 @@ declare namespace createContext {
 declare function createContext(
   width: number,
   height: number,
-  options?: WebGLContextAttributes & { createWebGL2Context?: false; useSwiftShader?: boolean },
+  options?: WebGLContextAttributes & { createWebGL2Context?: false; useSwiftShader?: boolean; useVulkan?: boolean },
 ): WebGLRenderingContext & createContext.StackGLExtension;
 
 declare function createContext(
   width: number,
   height: number,
-  options: WebGLContextAttributes & { createWebGL2Context: true; useSwiftShader?: boolean }
+  options: WebGLContextAttributes & { createWebGL2Context: true; useSwiftShader?: boolean; useVulkan?: boolean }
 ): WebGL2RenderingContext & createContext.StackGLExtension;
 
 declare function createContext(
   width: number,
   height: number,
-  options?: WebGLContextAttributes & { createWebGL2Context?: boolean; useSwiftShader?: boolean }
+  options?: WebGLContextAttributes & { createWebGL2Context?: boolean; useSwiftShader?: boolean; useVulkan?: boolean }
 ): (WebGLRenderingContext | WebGL2RenderingContext) & createContext.StackGLExtension;
 
 export = createContext;

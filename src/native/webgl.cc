@@ -189,7 +189,8 @@ WebGLRenderingContext::WebGLRenderingContext(int width, int height, bool alpha, 
                                              bool preferLowPowerToHighPerformance,
                                              bool failIfMajorPerformanceCaveat,
                                              bool createWebGL2Context,
-                                             bool useSwiftShader)
+                                             bool useSwiftShader,
+                                             bool useVulkan)
     : state(GLCONTEXT_STATE_INIT), unpack_flip_y(false), unpack_premultiply_alpha(false),
       unpack_colorspace_conversion(0x9244), unpack_alignment(4),
       webGLToANGLEExtensions(&CaseInsensitiveCompare), next(NULL), prev(NULL) {
@@ -208,6 +209,7 @@ WebGLRenderingContext::WebGLRenderingContext(int width, int height, bool alpha, 
   // Get display
   if (!HAS_DISPLAY) {
     const char *envSwiftShader = getenv("USE_SWIFTSHADER");
+    const char *envVulkan = getenv("USE_VULKAN");
     if (useSwiftShader || (envSwiftShader && envSwiftShader[0] == '1')) {
       // Auto-set VK_ICD_FILENAMES if not already set
       if (!getenv("VK_ICD_FILENAMES")) {
@@ -217,6 +219,14 @@ WebGLRenderingContext::WebGLRenderingContext(int width, int height, bool alpha, 
       EGLint displayAttribs[] = {
         EGL_PLATFORM_ANGLE_TYPE_ANGLE, EGL_PLATFORM_ANGLE_TYPE_VULKAN_ANGLE,
         EGL_PLATFORM_ANGLE_DEVICE_TYPE_ANGLE, EGL_PLATFORM_ANGLE_DEVICE_TYPE_SWIFTSHADER_ANGLE,
+        EGL_NONE
+      };
+      DISPLAY = eglGetPlatformDisplayEXT(EGL_PLATFORM_ANGLE_ANGLE, (void *)EGL_DEFAULT_DISPLAY, displayAttribs);
+    }
+    else if (useVulkan || (envVulkan && envVulkan[0] == '1')) {
+      // Generic Vulkan — uses whatever ICD is available (lavapipe, native GPU, etc.)
+      EGLint displayAttribs[] = {
+        EGL_PLATFORM_ANGLE_TYPE_ANGLE, EGL_PLATFORM_ANGLE_TYPE_VULKAN_ANGLE,
         EGL_NONE
       };
       DISPLAY = eglGetPlatformDisplayEXT(EGL_PLATFORM_ANGLE_ANGLE, (void *)EGL_DEFAULT_DISPLAY, displayAttribs);
@@ -482,6 +492,7 @@ GL_METHOD(New) {
 
   bool createWebGL2Context = Nan::To<bool>(info[10]).ToChecked();
   bool useSwiftShader = info.Length() > 11 ? Nan::To<bool>(info[11]).ToChecked() : false;
+  bool useVulkan = info.Length() > 12 ? Nan::To<bool>(info[12]).ToChecked() : false;
 
   WebGLRenderingContext *instance =
       new WebGLRenderingContext(Nan::To<int32_t>(info[0]).ToChecked(), // Width
@@ -495,7 +506,8 @@ GL_METHOD(New) {
                                 Nan::To<bool>(info[8]).ToChecked(),    // low power
                                 Nan::To<bool>(info[9]).ToChecked(),    // fail if crap
                                 createWebGL2Context,
-                                useSwiftShader);
+                                useSwiftShader,
+                                useVulkan);
 
   if (instance->state != GLCONTEXT_STATE_OK) {
     if (!instance->errorMessage.empty()) {

@@ -11,34 +11,24 @@ declare namespace createContext {
       getExtension(extensionName: "STACKGL_destroy_context"): STACKGL_destroy_context | null;
       getExtension(extensionName: "STACKGL_resize_drawingbuffer"): STACKGL_resize_drawingbuffer | null;
   }
-
-  const WebGLRenderingContext: WebGLRenderingContext & StackGLExtension & {
-      new(): WebGLRenderingContext & StackGLExtension;
-      prototype: WebGLRenderingContext & StackGLExtension;
-  };
-
-  const WebGL2RenderingContext: WebGL2RenderingContext & StackGLExtension & {
-      new(): WebGL2RenderingContext & StackGLExtension;
-      prototype: WebGL2RenderingContext & StackGLExtension;
-  };
 }
 
 declare function createContext(
   width: number,
   height: number,
-  options?: WebGLContextAttributes & { createWebGL2Context?: false },
+  options?: WebGLContextAttributes & { createWebGL2Context?: false; useSwiftShader?: boolean },
 ): WebGLRenderingContext & createContext.StackGLExtension;
 
 declare function createContext(
   width: number,
   height: number,
-  options: WebGLContextAttributes & { createWebGL2Context: true }
+  options: WebGLContextAttributes & { createWebGL2Context: true; useSwiftShader?: boolean }
 ): WebGL2RenderingContext & createContext.StackGLExtension;
 
 declare function createContext(
   width: number,
   height: number,
-  options?: WebGLContextAttributes & { createWebGL2Context?: boolean }
+  options?: WebGLContextAttributes & { createWebGL2Context?: boolean; useSwiftShader?: boolean }
 ): (WebGLRenderingContext | WebGL2RenderingContext) & createContext.StackGLExtension;
 
 export = createContext;

@@ -72,6 +72,9 @@
                 'files': [
                   '<(module_root_dir)/deps/linux/so/libEGL.so',
                   '<(module_root_dir)/deps/linux/so/libGLESv2.so',
+                  '<(module_root_dir)/deps/linux/so/libvk_swiftshader.so',
+                  '<(module_root_dir)/deps/linux/so/libvulkan.so.1',
+                  '<(module_root_dir)/deps/linux/so/vk_swiftshader_icd.json',
                 ]
               }
            ]
@@ -123,7 +126,10 @@
                 'files': [
                   '<(module_root_dir)/deps/windows/dll/libEGL.dll',
                   '<(module_root_dir)/deps/windows/dll/libGLESv2.dll',
-                  '<(module_root_dir)/deps/windows/dll/d3dcompiler_47.dll'
+                  '<(module_root_dir)/deps/windows/dll/d3dcompiler_47.dll',
+                  '<(module_root_dir)/deps/windows/dll/vk_swiftshader.dll',
+                  '<(module_root_dir)/deps/windows/dll/vk_swiftshader_icd.json',
+                  '<(module_root_dir)/deps/windows/dll/vulkan-1.dll'
                 ]
               }
            ]

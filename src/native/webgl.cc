@@ -2342,14 +2342,32 @@ GL_METHOD(CopyBufferSubData) {
   glCopyBufferSubData(readTarget, writeTarget, readOffset, writeOffset, size);
 }
 
+// WebGL2 getBufferSubData(target, srcByteOffset, dstBuffer, dstOffset = 0, length = 0):
+// dstOffset and length count elements of dstBuffer's type. ES 3.0 has no
+// glGetBufferSubData; the range is mapped for reading and copied out.
 GL_METHOD(GetBufferSubData) {
   GL_BOILERPLATE;
   GLenum target = Nan::To<int32_t>(info[0]).ToChecked();
   GLintptr srcByteOffset = Nan::To<int64_t>(info[1]).ToChecked();
-  auto buffer = info[2].As<v8::ArrayBufferView>();
-  void *bufferPtr = buffer->Buffer()->GetBackingStore()->Data();
-  GLsizeiptr bufferSize = buffer->ByteLength();
-  // TODO:  glGetBufferSubData(target, srcByteOffset, bufferSize, bufferPtr);
+  auto view = info[2].As<v8::ArrayBufferView>();
+  size_t elementSize = 1;
+  if (info[2]->IsTypedArray()) {
+    size_t elements = info[2].As<v8::TypedArray>()->Length();
+    if (elements > 0) elementSize = view->ByteLength() / elements;
+  }
+  size_t dstOffset = info.Length() > 3 && !info[3]->IsUndefined() ? static_cast<size_t>(Nan::To<int64_t>(info[3]).ToChecked()) : 0;
+  size_t length = info.Length() > 4 && !info[4]->IsUndefined() ? static_cast<size_t>(Nan::To<int64_t>(info[4]).ToChecked()) : 0;
+  size_t dstByteOffset = dstOffset * elementSize;
+  if (dstByteOffset > view->ByteLength()) return;
+  size_t byteLength = length ? length * elementSize : view->ByteLength() - dstByteOffset;
+  if (dstByteOffset + byteLength > view->ByteLength()) return;
+  if (byteLength == 0) return;
+  uint8_t *dst = static_cast<uint8_t*>(view->Buffer()->GetBackingStore()->Data()) + view->ByteOffset() + dstByteOffset;
+  void *mapped = glMapBufferRange(target, srcByteOffset, static_cast<GLsizeiptr>(byteLength), GL_MAP_READ_BIT);
+  if (mapped) {
+    memcpy(dst, mapped, byteLength);
+    glUnmapBuffer(target);
+  }
 }
 
 GL_METHOD(BlitFramebuffer) {

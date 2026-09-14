@@ -970,7 +970,8 @@ GL_METHOD(BindTexture) {
 }
 
 std::vector<uint8_t> WebGLRenderingContext::unpackPixels(GLenum type, GLenum format, GLint width,
-                                                         GLint height, unsigned char *pixels) {
+                                                         GLint height, size_t length,
+                                                         unsigned char *pixels) {
 
   // Compute pixel size
   GLint pixelSize = 1;
@@ -1003,6 +1004,14 @@ std::vector<uint8_t> WebGLRenderingContext::unpackPixels(GLenum type, GLenum for
   }
 
   GLint imageSize = rowStride * height;
+
+  // The last row is not padded to the unpack alignment, so the source must
+  // hold every full row plus one row of pixels. A source that is absent or
+  // shorter is refused here: nothing below this point can check a pointer's
+  // extent, and reading past it is what took the process down.
+  if (width <= 0 || height <= 0 || pixels == nullptr) return {};
+  size_t required = (size_t)rowStride * (height - 1) + (size_t)width * pixelSize;
+  if (length < required) return {};
   std::vector<uint8_t> unpacked(imageSize);
 
   if (unpack_flip_y) {
@@ -1011,7 +1020,7 @@ std::vector<uint8_t> WebGLRenderingContext::unpackPixels(GLenum type, GLenum for
              width * pixelSize);
     }
   } else {
-    memcpy(unpacked.data(), reinterpret_cast<void *>(pixels), imageSize);
+    memcpy(unpacked.data(), reinterpret_cast<void *>(pixels), required);
   }
 
   // Premultiply alpha unpacking
@@ -1079,11 +1088,24 @@ GL_METHOD(TexImage2D) {
   GLint border = Nan::To<int32_t>(info[5]).ToChecked();
   GLenum format = Nan::To<int32_t>(info[6]).ToChecked();
   GLint type = Nan::To<int32_t>(info[7]).ToChecked();
+
+  // The nine-argument form takes an ArrayBufferView or null. The element form
+  // of the browser API cannot be honoured here, there being nothing to sample
+  // a DOM object from; it used to arrive with no ninth argument, allocate
+  // storage with no data and hand back a texture that rendered as nothing.
+  if (info.Length() < 9 || !(info[8]->IsNullOrUndefined() || info[8]->IsArrayBufferView())) {
+    Nan::ThrowTypeError("texImage2D: pixels must be an ArrayBufferView or null; DOM image sources are not supported");
+    return;
+  }
   Nan::TypedArrayContents<unsigned char> pixels(info[8]);
 
   if (*pixels) {
     if (inst->unpack_flip_y || inst->unpack_premultiply_alpha) {
-      std::vector<uint8_t> unpacked = inst->unpackPixels(type, format, width, height, *pixels);
+      std::vector<uint8_t> unpacked = inst->unpackPixels(type, format, width, height, pixels.length(), *pixels);
+      if (unpacked.empty()) {
+        inst->setError(GL_INVALID_OPERATION);
+        return;
+      }
       CallTexImage2D(target, level, internalformat, width, height, border, format, type,
                      unpacked.size(), unpacked.data());
     } else {
@@ -1106,10 +1128,28 @@ GL_METHOD(TexSubImage2D) {
   GLsizei height = Nan::To<int32_t>(info[5]).ToChecked();
   GLenum format = Nan::To<int32_t>(info[6]).ToChecked();
   GLenum type = Nan::To<int32_t>(info[7]).ToChecked();
+
+  // Same contract as TexImage2D, and the case that mattered: a missing or
+  // non-view ninth argument yielded a null pointer that unpackPixels read from.
+  if (info.Length() < 9 || !info[8]->IsArrayBufferView()) {
+    Nan::ThrowTypeError("texSubImage2D: pixels must be an ArrayBufferView; DOM image sources are not supported");
+    return;
+  }
   Nan::TypedArrayContents<unsigned char> pixels(info[8]);
 
+  // A view with no bytes is a valid argument with nothing to upload; WebGL
+  // reports it as an operation error rather than an exception.
+  if (!*pixels || pixels.length() == 0) {
+    inst->setError(GL_INVALID_OPERATION);
+    return;
+  }
+
   if (inst->unpack_flip_y || inst->unpack_premultiply_alpha) {
-    std::vector<uint8_t> unpacked = inst->unpackPixels(type, format, width, height, *pixels);
+    std::vector<uint8_t> unpacked = inst->unpackPixels(type, format, width, height, pixels.length(), *pixels);
+    if (unpacked.empty()) {
+      inst->setError(GL_INVALID_OPERATION);
+      return;
+    }
     glTexSubImage2DRobustANGLE(target, level, xoffset, yoffset, width, height, format, type,
                                unpacked.size(), unpacked.data());
   } else {

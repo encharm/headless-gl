@@ -107,7 +107,7 @@ struct WebGLRenderingContext : public node::ObjectWrap {
   bool setActive();
 
   // Unpacks a buffer full of pixels into memory
-  std::vector<uint8_t> unpackPixels(GLenum type, GLenum format, GLint width, GLint height,
+  std::vector<uint8_t> unpackPixels(GLenum type, GLenum format, GLint width, GLint height, size_t length,
                                     unsigned char *pixels);
 
   // Error handling

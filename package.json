@@ -43,6 +43,17 @@
     "gpgpu"
   ],
   "types": "index.d.ts",
+  "files": [
+    "binding.gyp",
+    "deps/darwin/dylib/",
+    "deps/linux/",
+    "deps/linux-arm64/",
+    "deps/windows/",
+    "src/",
+    "index.js",
+    "index.d.ts",
+    "LICENSES"
+  ],
   "author": "Mikola Lysenko",
   "license": "BSD-2-Clause",
   "gypfile": true

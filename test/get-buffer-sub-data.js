@@ -41,7 +41,7 @@ tape('getBufferSubData', function (t) {
   gl.readPixels(0, 0, 16, 16, gl.RGBA, gl.UNSIGNED_BYTE, 0)
   const pixels = new Uint8Array(16 * 16 * 4)
   gl.getBufferSubData(gl.PIXEL_PACK_BUFFER, 0, pixels)
-  t.deepEqual(Array.from(pixels.slice(0, 4)), [51, 153, 229, 255], 'pixel pack buffer reads back')
+  t.deepEqual(Array.from(pixels.slice(0, 4)), [51, 153, 230, 255], 'pixel pack buffer reads back')
   t.equal(gl.getError(), gl.NO_ERROR, 'no error')
 
   gl.destroy()

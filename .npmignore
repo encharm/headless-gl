@@ -12,3 +12,5 @@ scripts/*
 7.0.0
 7.4.0
 8.1.3
+angle/
+deps/darwin/dylib-*/

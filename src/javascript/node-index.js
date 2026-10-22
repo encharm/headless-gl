@@ -85,13 +85,13 @@ function createContext (width, height, options) {
 
   // uniform*fv / vertexAttrib*fv: native binding only has scalar versions
   ctx.uniform1fv = function (loc, v) { for (let i = 0; i < v.length; i++) ctx.uniform1f(loc + i, v[i]) }
-  ctx.uniform2fv = function (loc, v) { for (let i = 0; i < v.length / 2; i++) ctx.uniform2f(loc + i, v[2*i], v[2*i+1]) }
-  ctx.uniform3fv = function (loc, v) { for (let i = 0; i < v.length / 3; i++) ctx.uniform3f(loc + i, v[3*i], v[3*i+1], v[3*i+2]) }
-  ctx.uniform4fv = function (loc, v) { for (let i = 0; i < v.length / 4; i++) ctx.uniform4f(loc + i, v[4*i], v[4*i+1], v[4*i+2], v[4*i+3]) }
+  ctx.uniform2fv = function (loc, v) { for (let i = 0; i < v.length / 2; i++) ctx.uniform2f(loc + i, v[2 * i], v[2 * i + 1]) }
+  ctx.uniform3fv = function (loc, v) { for (let i = 0; i < v.length / 3; i++) ctx.uniform3f(loc + i, v[3 * i], v[3 * i + 1], v[3 * i + 2]) }
+  ctx.uniform4fv = function (loc, v) { for (let i = 0; i < v.length / 4; i++) ctx.uniform4f(loc + i, v[4 * i], v[4 * i + 1], v[4 * i + 2], v[4 * i + 3]) }
   ctx.uniform1iv = function (loc, v) { for (let i = 0; i < v.length; i++) ctx.uniform1i(loc + i, v[i]) }
-  ctx.uniform2iv = function (loc, v) { for (let i = 0; i < v.length / 2; i++) ctx.uniform2i(loc + i, v[2*i], v[2*i+1]) }
-  ctx.uniform3iv = function (loc, v) { for (let i = 0; i < v.length / 3; i++) ctx.uniform3i(loc + i, v[3*i], v[3*i+1], v[3*i+2]) }
-  ctx.uniform4iv = function (loc, v) { for (let i = 0; i < v.length / 4; i++) ctx.uniform4i(loc + i, v[4*i], v[4*i+1], v[4*i+2], v[4*i+3]) }
+  ctx.uniform2iv = function (loc, v) { for (let i = 0; i < v.length / 2; i++) ctx.uniform2i(loc + i, v[2 * i], v[2 * i + 1]) }
+  ctx.uniform3iv = function (loc, v) { for (let i = 0; i < v.length / 3; i++) ctx.uniform3i(loc + i, v[3 * i], v[3 * i + 1], v[3 * i + 2]) }
+  ctx.uniform4iv = function (loc, v) { for (let i = 0; i < v.length / 4; i++) ctx.uniform4i(loc + i, v[4 * i], v[4 * i + 1], v[4 * i + 2], v[4 * i + 3]) }
   ctx.vertexAttrib1fv = function (idx, v) { ctx.vertexAttrib1f(idx, v[0]) }
   ctx.vertexAttrib2fv = function (idx, v) { ctx.vertexAttrib2f(idx, v[0], v[1]) }
   ctx.vertexAttrib3fv = function (idx, v) { ctx.vertexAttrib3f(idx, v[0], v[1], v[2]) }

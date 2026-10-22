@@ -17,7 +17,7 @@
     "install": "prebuild-install || node-gyp rebuild"
   },
   "dependencies": {
-    "nan": "^2.24.0",
+    "nan": "^2.29.0",
     "node-gyp": "^12.1.0",
     "prebuild-install": "^7.1.3"
   },

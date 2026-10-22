@@ -6,6 +6,6 @@ Run tests on SwiftShader (`USE_SWIFTSHADER=1`), not the host GPU driver, so pixe
 
 - `npm test` preloads `test/setup.js`, which sets `USE_SWIFTSHADER=1` unless it's already set.
 - CI also sets it in the job env. On Windows, the native `getenv` may not see a `process.env` value set at runtime.
-- Exception: linux-arm64 ships without SwiftShader binaries (`deps/linux-arm64/so`), so it uses the default backend.
+- SwiftShader binaries ship for every platform in `deps/`. The linux-arm64 ones (`libvk_swiftshader.so`, `libvulkan.so.1`, ICD json) come from Playwright Chromium 140 build r1187 (`chromium-linux-arm64.zip`), stripped.
 - When running a single test file by hand, use `npx tape -r ./test/setup.js test/<file>.js`.
 - If a pixel test passes on SwiftShader but fails on a driver, that comes from driver rounding, not a bug. Don't loosen expectations to match a GPU.

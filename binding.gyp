@@ -61,6 +61,9 @@
                 'files': [
                   '<(module_root_dir)/deps/linux-arm64/so/libEGL.so',
                   '<(module_root_dir)/deps/linux-arm64/so/libGLESv2.so',
+                  '<(module_root_dir)/deps/linux-arm64/so/libvk_swiftshader.so',
+                  '<(module_root_dir)/deps/linux-arm64/so/libvulkan.so.1',
+                  '<(module_root_dir)/deps/linux-arm64/so/vk_swiftshader_icd.json',
                 ]
               }
            ]

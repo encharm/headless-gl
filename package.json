@@ -11,7 +11,7 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "test": "standard | snazzy && tape test/*.js | faucet",
+    "test": "standard | snazzy && tape -r ./test/setup.js test/*.js | faucet",
     "rebuild": "node-gyp rebuild --verbose",
     "prebuild": "prebuild --all --strip",
     "install": "prebuild-install || node-gyp rebuild"

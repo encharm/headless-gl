@@ -10,6 +10,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     permissions:
       packages: read
+    env:
+      # Tests run on SwiftShader for predictable pixels; linux-arm64 ships without it.
+      USE_SWIFTSHADER: ${{ matrix.os != 'ubuntu-24.04-arm' && '1' || '' }}
     strategy:
       fail-fast: false
       matrix:
